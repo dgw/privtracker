@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -114,8 +115,12 @@ func hsts(c *fiber.Ctx) error {
 }
 
 func docs(c *fiber.Ctx) error {
-	if c.Hostname() != "privtracker.com" {
-		return c.Redirect("https://privtracker.com/", fiber.StatusMovedPermanently)
+	val, set = os.LookupEnv("DOMAINS")
+	domains := strings.Split(domains, ",")
+	for _, domain := range domains {
+		if c.Hostname() == domain {
+			return c.Next()
+		}
 	}
-	return c.Next()
+	return c.Redirect(fmt.Sprintf("https://%s/", domains[0]), fiber.StatusMovedPermanently)
 }
